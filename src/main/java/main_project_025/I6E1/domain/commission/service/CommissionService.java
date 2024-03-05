@@ -1,0 +1,110 @@
+package main_project_025.I6E1.domain.commission.service;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import main_project_025.I6E1.global.auth.userdetails.AuthMember;
+import main_project_025.I6E1.global.aws.AwsS3Service;
+import main_project_025.I6E1.domain.commission.entity.Commission;
+import main_project_025.I6E1.domain.commission.repository.CommissionRepository;
+import main_project_025.I6E1.domain.commission.repository.CommissionRepositoryImpl;
+import main_project_025.I6E1.global.exception.BusinessException;
+import main_project_025.I6E1.global.exception.ExceptionCode;
+import main_project_025.I6E1.domain.member.entity.Member;
+import main_project_025.I6E1.domain.member.repository.MemberRepository;
+import main_project_025.I6E1.domain.tag.service.TagService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@Transactional
+@Slf4j
+@AllArgsConstructor
+public class CommissionService {
+    private CommissionRepository commissionRepository;
+    private MemberRepository memberRepository;
+    private TagService tagService;
+    private AwsS3Service awsS3Service;
+    private CommissionRepositoryImpl commissionRepositoryImpl;
+
+    //CREATE
+    public Commission createCommission(Commission commission, List<MultipartFile> multipartFile){
+
+        AuthMember loginMember = (AuthMember) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        long memberId = loginMember.getMemberId();
+
+        Member verifyMember = getMemberFromId(memberId);
+        commission.setMember(verifyMember);
+
+        tagService.createTag(commission);
+        List<String> imageUrl = awsS3Service.uploadThumbnail(multipartFile);//수정부분
+        commission.setImageUrl(imageUrl);
+        return commissionRepository.save(commission);
+    }
+
+    // READ
+    public Commission readCommission(long commissionId){
+        Commission commission = existCommission(commissionId);
+
+        commission.setViewCount(commission.getViewCount() +1 );
+        return commissionRepository.save(commission);
+    }
+
+    // READ ALL
+    public Page<Commission> readCommissions(Pageable pageable){
+        Pageable pageRequest = PageRequest.of(pageable.getPageNumber()-1, pageable.getPageSize(), pageable.getSort());
+        return commissionRepository.findAll(pageRequest);
+    }
+
+  //검색 기능
+    public Page<Commission> searchOptions(Pageable pageable, String title, String name, List<String> tags) {
+        Pageable pageRequest = PageRequest.of(pageable.getPageNumber()-1, pageable.getPageSize(), pageable.getSort());
+        return commissionRepositoryImpl.findBySearchOption(pageRequest, title, name, tags);
+    }
+
+    // UPDATE
+    public Commission updateCommission(long commissionId, Commission commission){
+        Commission verifyCommission = verifyWriter(commissionId);
+
+        verifyCommission.setTitle(commission.getTitle());
+        verifyCommission.setContent(commission.getContent());
+        verifyCommission.setSubContent(commission.getSubContent());
+
+        //태그, 이미지 수정 미구현
+        return commissionRepository.save(verifyCommission);
+    }
+
+    //DELETE
+    public void deleteCommission(long commissionId){
+        commissionRepository.deleteById(commissionId);
+    }
+
+    // 게시글 검증
+    private Commission existCommission(long commissionId){
+        Optional<Commission> commission = commissionRepository.findById(commissionId);
+        return commission.orElseThrow(()-> new BusinessException(ExceptionCode.COMMISSION_NOT_FOUND));
+    }
+
+    // (로그인 멤버 = 작성자) 검증
+    private Commission verifyWriter(long commissionId){
+        AuthMember loginMember = (AuthMember) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        long memberId = loginMember.getMemberId();
+
+        Commission commission = existCommission(commissionId);
+        if ( commission.getMember().getMemberId()  != memberId  ){
+            throw new BusinessException(ExceptionCode.NOT_AUTHORITY);
+        }
+        return commission;
+    }
+
+    private Member getMemberFromId(long memberId){
+        return memberRepository.findById(memberId).get();
+    }
+}

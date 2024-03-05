@@ -1,0 +1,54 @@
+package main_project_025.I6E1.domain.member.controller;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import main_project_025.I6E1.domain.member.dto.MemberDto;
+import main_project_025.I6E1.domain.member.entity.Member;
+import main_project_025.I6E1.domain.member.mapper.MemberMapper;
+import main_project_025.I6E1.global.response.SingleResponseDto;
+import main_project_025.I6E1.domain.member.service.MemberService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+@RequiredArgsConstructor
+@RequestMapping("/members")
+@RestController
+public class MemberController {
+    private final MemberService memberService;
+    private final MemberMapper memberMapper;
+
+    //1. 회원가입
+    @PostMapping("/sign-up")
+    public ResponseEntity postMember(@Valid @RequestBody MemberDto.Post memberPostDto){
+        Member member =  memberMapper.memberPostToMember(memberPostDto);
+        Member savedMember = memberService.create(member);
+
+        MemberDto.MemberDetailResponse response = memberMapper.memberToMemberDetailResponse(savedMember);
+
+        return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{member-id}")
+    public ResponseEntity findMember(@Positive @PathVariable("member-id") Long memberId){
+        Member findMember = memberService.findById(memberId);
+        MemberDto.MemberDetailResponse response = memberMapper.memberToMemberDetailResponse(findMember);
+
+        return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
+    }
+
+    @PostMapping("/email")
+    public ResponseEntity checkEmail(@RequestBody MemberDto.CheckEmail email){
+        boolean check = memberService.checkEmail(email.getEmail());
+        Map<String,Boolean> response = new HashMap<>();
+        response.put("email",check);
+
+        return ResponseEntity.ok(response);
+    }
+}
