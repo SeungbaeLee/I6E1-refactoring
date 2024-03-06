@@ -1,13 +1,16 @@
 package main_project_025.I6E1.domain.trade.service;
 
 import lombok.RequiredArgsConstructor;
-import main_project_025.I6E1.global.auth.userdetails.AuthMember;
 import main_project_025.I6E1.domain.commission.entity.Commission;
-import main_project_025.I6E1.domain.commission.repository.CommissionRepository;
+import main_project_025.I6E1.domain.commission.service.CommissionService;
+import main_project_025.I6E1.domain.member.entity.Member;
+import main_project_025.I6E1.domain.member.service.MemberService;
+import main_project_025.I6E1.domain.trade.dto.TradePatchDto;
+import main_project_025.I6E1.domain.trade.dto.TradePostDto;
+import main_project_025.I6E1.domain.trade.dto.TradeResponseDto;
 import main_project_025.I6E1.domain.trade.entity.Trade;
 import main_project_025.I6E1.domain.trade.repository.TradeRepository;
-import main_project_025.I6E1.domain.member.entity.Member;
-import main_project_025.I6E1.domain.member.repository.MemberRepository;
+import main_project_025.I6E1.global.auth.userdetails.AuthMember;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,46 +26,37 @@ import java.util.Optional;
 public class TradeService {
 
     private final TradeRepository tradeRepository;
-    private final CommissionRepository commissionRepository;
-    private final MemberRepository memberRepository;
+    private final CommissionService commissionService;
+    private final MemberService memberService;
 
 
-    public Trade createTrade(Trade trade) {
-        Commission commission = findCommissionById(trade.getCommission().getCommissionId());//커미션 검증
+    public TradeResponseDto createTrade(TradePostDto tradePostDto) {
+        Commission commission = commissionService.existCommission(tradePostDto.getCommissionId());//커미션 검증
 
-        AuthMember authMember = (AuthMember) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userEmail = authMember.getUsername();
+        String userEmail = getAuthMember();
+        Member member = memberService.findVerifyMemberByEmail(userEmail);
 
-        Optional<Member> optionalMember = memberRepository.findByEmail(userEmail);
-        Member member = optionalMember.orElseThrow(() -> new RuntimeException("거래 신청 권한이 없습니다."));
+        Trade trade = Trade.builder()
+                .title(tradePostDto.getTitle())
+                .content(tradePostDto.getContent())
+                .commission(commission)
+                .member(member)
+                .authorEmail(member.getEmail())
+                .build();
 
-        trade.setMember(member);
-        trade.setAuthorEmail(commission.getMember().getEmail());
-        trade.setCommission(commission);
-        return tradeRepository.save(trade);
+        tradeRepository.save(trade);
+        return TradeResponseDto.fromEntity(trade);
     }
 
-    public Trade updateTrade(Trade trade) {
-        Trade findTrade = findTradeById(trade.getTradeId());//거래 검증
-        Commission commission = findCommissionById(findTrade.getCommission().getCommissionId());//커미션 검증
-        findTrade.setCommission(commission);
-
-        AuthMember authMember = (AuthMember) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String userEmail = authMember.getUsername();
-
-        Optional<Member> optionalMember = memberRepository.findByEmail(userEmail);
-        Member member = optionalMember.orElseThrow(() -> new RuntimeException("거래 신청 권한이 없습니다."));
-
-        findTrade.setMember(member);
-        findTrade.setContent(findTrade.getContent());
-        findTrade.setTitle(findTrade.getTitle());
-        findTrade.setStatus(trade.getStatus());
-        return findTrade;
-    }
-
-    public Trade readTrade(long tradeId) {
+    public TradeResponseDto updateTrade(TradePatchDto tradePatchDto, long tradeId) {
         Trade findTrade = findTradeById(tradeId);
-        return findTrade;
+        findTrade.updateStatus(tradePatchDto.getStatus());
+        return TradeResponseDto.fromEntity(findTrade);
+    }
+
+    public TradeResponseDto readTrade(long tradeId) {
+        Trade findTrade = findTradeById(tradeId);
+        return TradeResponseDto.fromEntity(findTrade);
     }
 
     public Page<Trade> readTradesUser(Pageable pageable, Long memberId) {
@@ -88,9 +82,10 @@ public class TradeService {
         return trade;
     }
 
-    public Commission findCommissionById(long commissionId) {
-        Optional<Commission> optionalCommission = commissionRepository.findById(commissionId);
-        Commission commission = optionalCommission.orElseThrow(() -> new RuntimeException("존재하지 않는 판매글입니다."));
-        return commission;
+
+    public static String getAuthMember() {
+        AuthMember authMember = (AuthMember) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userEmail = authMember.getUsername();
+        return userEmail;
     }
 }
