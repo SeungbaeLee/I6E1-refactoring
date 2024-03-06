@@ -4,7 +4,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import main_project_025.I6E1.domain.commission.entity.Commission;
-import main_project_025.I6E1.commission.entity.QCommission;
+import main_project_025.I6E1.domain.commission.entity.QCommission;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
