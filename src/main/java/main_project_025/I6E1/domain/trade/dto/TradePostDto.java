@@ -3,10 +3,8 @@ package main_project_025.I6E1.domain.trade.dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
 @NoArgsConstructor
 public class TradePostDto {
 
