@@ -2,11 +2,10 @@ package main_project_025.I6E1.domain.commission.contoller;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import main_project_025.I6E1.global.aws.AwsS3Service;
-import main_project_025.I6E1.domain.commission.dto.CommissionDto;
+import main_project_025.I6E1.domain.commission.dto.CommissionPatchDto;
+import main_project_025.I6E1.domain.commission.dto.CommissionPostDto;
+import main_project_025.I6E1.domain.commission.dto.CommissionResponseDto;
 import main_project_025.I6E1.domain.commission.entity.Commission;
-import main_project_025.I6E1.domain.commission.mapper.CommissionMapper;
-import main_project_025.I6E1.domain.commission.repository.CommissionRepository;
 import main_project_025.I6E1.domain.commission.service.CommissionService;
 import main_project_025.I6E1.global.Page.PageDto;
 import main_project_025.I6E1.global.exception.BusinessException;
@@ -27,27 +26,20 @@ import java.util.List;
 @AllArgsConstructor
 public class CommissionController {
     private final CommissionService commissionService;
-    private final CommissionMapper mapper;
-    private final AwsS3Service awsS3Service;
-    private final CommissionRepository commissionRepository;//test
-
-
 
     @PostMapping
     @PreAuthorize("hasRole('ROLE_AUTHOR')")
-    public ResponseEntity postCommission(@Valid CommissionDto.Post post, List<MultipartFile> multipartFile){
-        Commission commission = commissionService.createCommission(mapper.commissionPostDtoToCommission(post), multipartFile);
-        CommissionDto.Response response = mapper.commissionToResponse(commission);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<CommissionResponseDto> postCommission(@Valid CommissionPostDto postDto, List<MultipartFile> multipartFile){
+        CommissionResponseDto commissionResponseDto = commissionService.createCommission(postDto, multipartFile);
+        return new ResponseEntity<>(commissionResponseDto, HttpStatus.CREATED);
     }
 
 
     //READ
     @GetMapping("/{commission-id}")
     public ResponseEntity getCommission(@PathVariable("commission-id")long commissionId) throws BusinessException {
-            Commission commission = commissionService.readCommission(commissionId);
-            CommissionDto.Response response = mapper.commissionToResponse(commission);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            CommissionResponseDto commission = commissionService.readCommission(commissionId);
+            return new ResponseEntity<>(commission, HttpStatus.OK);
 
     }
     //READ ALL
@@ -57,7 +49,7 @@ public class CommissionController {
             Page<Commission> commissionPage = commissionService.readCommissions(pageable);
             List<Commission> commissionList = commissionPage.getContent();
 
-            PageDto pageDto = new PageDto<>(mapper.commissionToResponses(commissionList),commissionPage);
+            PageDto pageDto = new PageDto<>(CommissionResponseDto.fromEntityList(commissionList),commissionPage);
             return new ResponseEntity<>(pageDto, HttpStatus.OK);
     }
 
@@ -70,27 +62,26 @@ public class CommissionController {
 
         Page<Commission> commissionPage = commissionService.searchOptions(pageable, title, name, tags);
         List<Commission> commissionList = commissionPage.getContent();
-        PageDto pageDto = new PageDto<>(mapper.commissionToResponses(commissionList),commissionPage);
+        PageDto pageDto = new PageDto<>(CommissionResponseDto.fromEntityList(commissionList),commissionPage);
         return new ResponseEntity<>(pageDto, HttpStatus.OK);
     }
 
     //UPDATE
     @PatchMapping("/{commission-id}")
     @PreAuthorize("hasRole('ROLE_AUTHOR')")
-    public ResponseEntity patchCommission(@PathVariable("commission-id")long commissionId,
-                                          @Valid @RequestBody CommissionDto.Patch patch){
-            Commission commission = commissionService.updateCommission(commissionId, mapper.commissionPatchDtoToCommission(patch));
+    public ResponseEntity<CommissionResponseDto> patchCommission(@PathVariable("commission-id")long commissionId,
+                                                                 @Valid @RequestBody CommissionPatchDto patchDto){
+            CommissionResponseDto commission = commissionService.updateCommission(commissionId, patchDto);
 
-            CommissionDto.Response response = mapper.commissionToResponse(commission);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return new ResponseEntity<>(commission, HttpStatus.OK);
     }
 
     //Delete
     //Soft Delete
     @DeleteMapping("/{commission-id}")
     @PreAuthorize("hasRole('ROLE_AUTHOR')")
-    public ResponseEntity deleteCommission(@PathVariable("commission-id")long commissionId){
+    public ResponseEntity<String> deleteCommission(@PathVariable("commission-id")long commissionId){
             commissionService.deleteCommission(commissionId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>("정상적으로 삭제되었습니다. " , HttpStatus.NO_CONTENT);
     }
 }

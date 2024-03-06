@@ -2,16 +2,20 @@ package main_project_025.I6E1.domain.commission.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main_project_025.I6E1.global.auth.userdetails.AuthMember;
-import main_project_025.I6E1.global.aws.AwsS3Service;
+import main_project_025.I6E1.domain.commission.dto.CommissionPatchDto;
+import main_project_025.I6E1.domain.commission.dto.CommissionPostDto;
+import main_project_025.I6E1.domain.commission.dto.CommissionResponseDto;
 import main_project_025.I6E1.domain.commission.entity.Commission;
 import main_project_025.I6E1.domain.commission.repository.CommissionRepository;
 import main_project_025.I6E1.domain.commission.repository.CommissionRepositoryImpl;
-import main_project_025.I6E1.global.exception.BusinessException;
-import main_project_025.I6E1.global.exception.ExceptionCode;
 import main_project_025.I6E1.domain.member.entity.Member;
 import main_project_025.I6E1.domain.member.repository.MemberRepository;
+import main_project_025.I6E1.domain.member.service.MemberService;
 import main_project_025.I6E1.domain.tag.service.TagService;
+import main_project_025.I6E1.global.auth.userdetails.AuthMember;
+import main_project_025.I6E1.global.aws.AwsS3Service;
+import main_project_025.I6E1.global.exception.BusinessException;
+import main_project_025.I6E1.global.exception.ExceptionCode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,31 +34,36 @@ import java.util.Optional;
 public class CommissionService {
     private CommissionRepository commissionRepository;
     private MemberRepository memberRepository;
+    private MemberService memberService;
     private TagService tagService;
     private AwsS3Service awsS3Service;
     private CommissionRepositoryImpl commissionRepositoryImpl;
 
     //CREATE
-    public Commission createCommission(Commission commission, List<MultipartFile> multipartFile){
+    public CommissionResponseDto createCommission(CommissionPostDto commissionPostDto, List<MultipartFile> multipartFile){
 
-        AuthMember loginMember = (AuthMember) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        long memberId = loginMember.getMemberId();
+        String memberEmail = memberService.getAuthMember();
+        Member member = memberService.findVerifyMemberByEmail(memberEmail);
+        Commission commission = Commission.builder()
+                .title(commissionPostDto.getTitle())
+                .content(commissionPostDto.getContent())
+                .subContent(commissionPostDto.getSubContent())
+                .member(member)
+                .build();
 
-        Member verifyMember = getMemberFromId(memberId);
-        commission.setMember(verifyMember);
-
-        tagService.createTag(commission);
+        Commission commission1 = tagService.createTag(commissionPostDto.getTags(), commission);
         List<String> imageUrl = awsS3Service.uploadThumbnail(multipartFile);//수정부분
-        commission.setImageUrl(imageUrl);
-        return commissionRepository.save(commission);
+        commission1.setImageUrl(imageUrl);
+        commissionRepository.save(commission1);
+        return CommissionResponseDto.fromEntity(commission1);
     }
 
     // READ
-    public Commission readCommission(long commissionId){
+    public CommissionResponseDto readCommission(long commissionId){
         Commission commission = existCommission(commissionId);
 
-        commission.setViewCount(commission.getViewCount() +1 );
-        return commissionRepository.save(commission);
+        commission.updateViewCount();
+        return CommissionResponseDto.fromEntity(commission);
     }
 
     // READ ALL
@@ -70,15 +79,10 @@ public class CommissionService {
     }
 
     // UPDATE
-    public Commission updateCommission(long commissionId, Commission commission){
+    public CommissionResponseDto updateCommission(long commissionId, CommissionPatchDto commissionPatchDto){
         Commission verifyCommission = verifyWriter(commissionId);
-
-        verifyCommission.setTitle(commission.getTitle());
-        verifyCommission.setContent(commission.getContent());
-        verifyCommission.setSubContent(commission.getSubContent());
-
-        //태그, 이미지 수정 미구현
-        return commissionRepository.save(verifyCommission);
+        verifyCommission.updateCommission(commissionPatchDto.getTitle(), commissionPatchDto.getContent(), commissionPatchDto.getSubContent());
+        return CommissionResponseDto.fromEntity(verifyCommission);
     }
 
     //DELETE
@@ -87,7 +91,7 @@ public class CommissionService {
     }
 
     // 게시글 검증
-    private Commission existCommission(long commissionId){
+    public Commission existCommission(long commissionId){
         Optional<Commission> commission = commissionRepository.findById(commissionId);
         return commission.orElseThrow(()-> new BusinessException(ExceptionCode.COMMISSION_NOT_FOUND));
     }
