@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import main_project_025.I6E1.domain.member.dto.MemberDetailResponseDto;
 import main_project_025.I6E1.domain.member.dto.MemberPostDto;
 import main_project_025.I6E1.domain.member.entity.Member;
-import main_project_025.I6E1.domain.member.mapper.MemberMapper;
 import main_project_025.I6E1.domain.member.service.MemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +21,6 @@ import java.util.Map;
 @RestController
 public class MemberController {
     private final MemberService memberService;
-    private final MemberMapper memberMapper;
 
     //1. 회원가입
     @PostMapping("/sign-up")
