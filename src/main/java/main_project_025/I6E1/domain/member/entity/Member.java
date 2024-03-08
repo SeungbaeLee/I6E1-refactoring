@@ -1,10 +1,7 @@
 package main_project_025.I6E1.domain.member.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import main_project_025.I6E1.domain.trade.entity.Trade;
 import main_project_025.I6E1.global.auditable.Auditable;
 
@@ -13,9 +10,7 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Member extends Auditable {
 
     @Id
@@ -42,10 +37,14 @@ public class Member extends Auditable {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Trade> trades = new ArrayList<>();
 
-    public void setTrade(Trade trade) {
-        this.getTrades().add(trade);
-        if (trade.getMember() != this) {
-            trade.setMember(this);
-        }
+
+    @Builder
+    public Member(Long memberId, String email, String password, String nickname, List<String> roles, List<Trade> trades) {
+        this.memberId = memberId;
+        this.email = email;
+        this.password = password;
+        this.nickname = nickname;
+        this.roles = roles;
+        this.trades = trades;
     }
 }

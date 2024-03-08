@@ -2,6 +2,7 @@ package main_project_025.I6E1.domain.tag.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,6 +26,13 @@ public class Tag {
 
     @OneToMany(mappedBy = "tag")
     private List<CommissionTag> commissions = new ArrayList<>();
+
+    @Builder
+    public Tag(Long tagId, String tagName, List<CommissionTag> commissions) {
+        this.tagId = tagId;
+        this.tagName = tagName;
+        this.commissions = commissions;
+    }
 
     public Tag(String tagName) {
         this.tagName = tagName;
