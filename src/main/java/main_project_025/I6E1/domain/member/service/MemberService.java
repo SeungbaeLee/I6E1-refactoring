@@ -2,11 +2,15 @@ package main_project_025.I6E1.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import main_project_025.I6E1.domain.member.dto.MemberDetailResponseDto;
+import main_project_025.I6E1.domain.member.dto.MemberPostDto;
+import main_project_025.I6E1.global.auth.userdetails.AuthMember;
 import main_project_025.I6E1.global.auth.utils.CustomAuthorityUtils;
 import main_project_025.I6E1.domain.member.entity.Member;
 import main_project_025.I6E1.domain.member.repository.MemberRepository;
 import main_project_025.I6E1.global.exception.BusinessException;
 import main_project_025.I6E1.global.exception.ExceptionCode;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,21 +26,16 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final CustomAuthorityUtils authorityUtils;
 
-    public Member create(Member member){
-        Boolean checkEmailResult = checkEmail(member.getEmail());
-        Boolean checkNameResult = checkNickname(member.getNickname());
-
-        if(!checkEmailResult){
-            throw new BusinessException(ExceptionCode.EMAIL_EXISTS);
-        }
-
-        if(!checkNameResult){
-            throw new BusinessException(ExceptionCode.USER_NAME_EXISTS);
-        }
-
-        String encryptedPassword = passwordEncoder.encode(member.getPassword());
-        member.setPassword(encryptedPassword);
-        return memberRepository.save(member);
+    public MemberDetailResponseDto create(MemberPostDto memberPostDto){
+        String encryptedPassword = passwordEncoder.encode(memberPostDto.getPassword());
+        Member member = Member.builder()
+                .email(memberPostDto.getEmail())
+                .password(encryptedPassword)
+                .nickname(memberPostDto.getNickname())
+                .roles(memberPostDto.getRoles())
+                .build();
+        memberRepository.save(member);
+        return MemberDetailResponseDto.fromEntity(member);
     }
 
     public Member findById(Long memberId){
@@ -59,7 +58,7 @@ public class MemberService {
         return optionalMembers.isEmpty();
     }
 
-    private Member findVerifyMemberById(Long memberId){
+    public Member findVerifyMemberById(Long memberId){
         Optional<Member> optionalMembers = memberRepository.findById(memberId);
 
         if(optionalMembers.isEmpty()){
@@ -69,7 +68,7 @@ public class MemberService {
         return optionalMembers.get();
     }
 
-    private Member findVerifyMemberByEmail(String email){
+    public Member findVerifyMemberByEmail(String email){
         Optional<Member> optionalMembers = memberRepository.findByEmail(email);
 
         if(optionalMembers.isEmpty()) {
@@ -79,4 +78,9 @@ public class MemberService {
         return optionalMembers.get();
     }
 
+    public static String getAuthMember() {
+        AuthMember authMember = (AuthMember) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userEmail = authMember.getUsername();
+        return userEmail;
+    }
 }

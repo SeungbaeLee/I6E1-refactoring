@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import main_project_025.I6E1.domain.member.dto.MemberDetailResponseDto;
 import main_project_025.I6E1.domain.member.dto.MemberDto;
+import main_project_025.I6E1.domain.member.dto.MemberPostDto;
 import main_project_025.I6E1.domain.member.entity.Member;
 import main_project_025.I6E1.domain.member.mapper.MemberMapper;
 import main_project_025.I6E1.global.response.SingleResponseDto;
@@ -26,13 +28,9 @@ public class MemberController {
 
     //1. 회원가입
     @PostMapping("/sign-up")
-    public ResponseEntity postMember(@Valid @RequestBody MemberDto.Post memberPostDto){
-        Member member =  memberMapper.memberPostToMember(memberPostDto);
-        Member savedMember = memberService.create(member);
-
-        MemberDto.MemberDetailResponse response = memberMapper.memberToMemberDetailResponse(savedMember);
-
-        return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.CREATED);
+    public ResponseEntity<MemberDetailResponseDto> postMember(@Valid @RequestBody MemberPostDto memberPostDto){
+        MemberDetailResponseDto savedMember = memberService.create(memberPostDto);
+        return new ResponseEntity<>(savedMember, HttpStatus.CREATED);
     }
 
     @GetMapping("/{member-id}")
@@ -44,8 +42,8 @@ public class MemberController {
     }
 
     @PostMapping("/email")
-    public ResponseEntity checkEmail(@RequestBody MemberDto.CheckEmail email){
-        boolean check = memberService.checkEmail(email.getEmail());
+    public ResponseEntity checkEmail(String email){
+        boolean check = memberService.checkEmail(email);
         Map<String,Boolean> response = new HashMap<>();
         response.put("email",check);
 
