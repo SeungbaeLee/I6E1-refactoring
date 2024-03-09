@@ -1,6 +1,7 @@
 package main_project_025.I6E1.domain.tag.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,6 +27,14 @@ public class CommissionTag {
     private Tag tag;
 
     private String tagName;//Tag 엔티티의 tagName 컬럼의 스냅샷
+
+    @Builder
+    public CommissionTag(Long commissionTagId, Commission commission, Tag tag, String tagName) {
+        this.commissionTagId = commissionTagId;
+        this.commission = commission;
+        this.tag = tag;
+        this.tagName = tagName;
+    }
 
     public CommissionTag(Tag tag) {//tag test
         this.tag = tag;

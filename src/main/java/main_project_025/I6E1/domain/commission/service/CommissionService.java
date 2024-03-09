@@ -20,10 +20,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,19 +42,22 @@ public class CommissionService {
     private CommissionRepositoryImpl commissionRepositoryImpl;
 
     //CREATE
-    public CommissionResponseDto createCommission(CommissionPostDto commissionPostDto, List<MultipartFile> multipartFile){
+    public CommissionResponseDto createCommission(CommissionPostDto commissionPostDto,
+                                                  List<MultipartFile> multipartFile,
+                                                  UserDetails userDetails){
 
-        String memberEmail = memberService.getAuthMember();
-        Member member = memberService.findVerifyMemberByEmail(memberEmail);
+        String email = userDetails.getUsername();
+        Member member = memberService.findVerifyMemberByEmail(email);
         Commission commission = Commission.builder()
                 .title(commissionPostDto.getTitle())
                 .content(commissionPostDto.getContent())
                 .subContent(commissionPostDto.getSubContent())
+                .tags(new ArrayList<>())
                 .member(member)
                 .build();
 
         Commission commission1 = tagService.createTag(commissionPostDto.getTags(), commission);
-        List<String> imageUrl = awsS3Service.uploadThumbnail(multipartFile);//수정부분
+        List<String> imageUrl = awsS3Service.uploadThumbnail(multipartFile);
         commission1.setImageUrl(imageUrl);
         commissionRepository.save(commission1);
         return CommissionResponseDto.fromEntity(commission1);

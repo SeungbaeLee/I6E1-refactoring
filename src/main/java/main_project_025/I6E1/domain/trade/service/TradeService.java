@@ -8,6 +8,7 @@ import main_project_025.I6E1.domain.member.service.MemberService;
 import main_project_025.I6E1.domain.trade.dto.TradePatchDto;
 import main_project_025.I6E1.domain.trade.dto.TradePostDto;
 import main_project_025.I6E1.domain.trade.dto.TradeResponseDto;
+import main_project_025.I6E1.domain.trade.entity.Status;
 import main_project_025.I6E1.domain.trade.entity.Trade;
 import main_project_025.I6E1.domain.trade.repository.TradeRepository;
 import main_project_025.I6E1.global.auth.userdetails.AuthMember;
@@ -41,7 +42,8 @@ public class TradeService {
                 .content(tradePostDto.getContent())
                 .commission(commission)
                 .member(member)
-                .authorEmail(member.getEmail())
+                .authorEmail(commission.getMember().getEmail())
+                .status(Status.Waiting_Acceptance)
                 .build();
 
         tradeRepository.save(trade);

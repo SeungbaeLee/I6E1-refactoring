@@ -1,10 +1,10 @@
 package main_project_025.I6E1.domain.tag.controller;
 
 import lombok.RequiredArgsConstructor;
+import main_project_025.I6E1.domain.tag.dto.TagRespondDto;
 import main_project_025.I6E1.domain.tag.entity.Tag;
 import main_project_025.I6E1.domain.tag.service.TagService;
 import main_project_025.I6E1.global.Page.PageDto;
-import main_project_025.I6E1.domain.tag.mapper.TagMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -23,12 +23,11 @@ import java.util.List;
 public class TagController {
 
     private final TagService tagService;
-    private final TagMapper tagMapper;
 
     @GetMapping
     public ResponseEntity readAllTag(Pageable pageable) {
         Page<Tag> tagPage = tagService.readTags(pageable);
         List<Tag> tagList = tagPage.getContent();
-        return new ResponseEntity<>(new PageDto<>(tagMapper.tagToRespondDto(tagList), tagPage), HttpStatus.OK);
+        return new ResponseEntity<>(new PageDto<>(TagRespondDto.fromEntityList(tagList), tagPage), HttpStatus.OK);
     }
 }

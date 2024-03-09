@@ -1,7 +1,7 @@
 package main_project_025.I6E1.domain.commission.contoller;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import main_project_025.I6E1.domain.commission.dto.CommissionPatchDto;
 import main_project_025.I6E1.domain.commission.dto.CommissionPostDto;
 import main_project_025.I6E1.domain.commission.dto.CommissionResponseDto;
@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,14 +25,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/commission")
 @Validated
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CommissionController {
     private final CommissionService commissionService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_AUTHOR')")
-    public ResponseEntity<CommissionResponseDto> postCommission(@Valid CommissionPostDto postDto, List<MultipartFile> multipartFile){
-        CommissionResponseDto commissionResponseDto = commissionService.createCommission(postDto, multipartFile);
+//    @PreAuthorize("hasRole('ROLE_AUTHOR')")
+    public ResponseEntity<CommissionResponseDto> postCommission(@Valid @RequestPart CommissionPostDto postDto,
+                                                                @RequestPart List<MultipartFile> multipartFile,
+                                                                @AuthenticationPrincipal UserDetails userDetails){
+        CommissionResponseDto commissionResponseDto = commissionService.createCommission(postDto, multipartFile, userDetails);
         return new ResponseEntity<>(commissionResponseDto, HttpStatus.CREATED);
     }
 
