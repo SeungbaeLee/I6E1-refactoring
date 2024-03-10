@@ -21,7 +21,5 @@ public class CommissionPostDto {
     private String subContent;
 
     @NotEmpty(message = "태그를 입력해주세요.")
-    private List<String> tags;//tag test
-
-//    private List<String> imageUrl;
+    private List<String> tags;
 }
