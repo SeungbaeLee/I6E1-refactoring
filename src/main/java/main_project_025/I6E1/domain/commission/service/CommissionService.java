@@ -1,6 +1,6 @@
 package main_project_025.I6E1.domain.commission.service;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import main_project_025.I6E1.domain.commission.dto.CommissionPatchDto;
 import main_project_025.I6E1.domain.commission.dto.CommissionPostDto;
@@ -32,14 +32,14 @@ import java.util.Optional;
 @Service
 @Transactional
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CommissionService {
-    private CommissionRepository commissionRepository;
-    private MemberRepository memberRepository;
-    private MemberService memberService;
-    private TagService tagService;
-    private AwsS3Service awsS3Service;
-    private CommissionRepositoryImpl commissionRepositoryImpl;
+    private final CommissionRepository commissionRepository;
+    private final MemberRepository memberRepository;
+    private final MemberService memberService;
+    private final TagService tagService;
+    private final AwsS3Service awsS3Service;
+    private final CommissionRepositoryImpl commissionRepositoryImpl;
 
     //CREATE
     public CommissionResponseDto createCommission(CommissionPostDto commissionPostDto,
