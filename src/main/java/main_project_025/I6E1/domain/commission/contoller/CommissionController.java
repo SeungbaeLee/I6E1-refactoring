@@ -24,7 +24,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/commission")
-@Validated
 @RequiredArgsConstructor
 public class CommissionController {
     private final CommissionService commissionService;

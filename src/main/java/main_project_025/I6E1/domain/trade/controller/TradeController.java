@@ -21,7 +21,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/trade")
-@Validated
 @RequiredArgsConstructor
 public class TradeController {
 
