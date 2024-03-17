@@ -1,27 +1,25 @@
 package main_project_025.I6E1.domain.review.controller;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import main_project_025.I6E1.domain.review.dto.ReviewDto;
-import main_project_025.I6E1.global.Page.PageDto;
-import main_project_025.I6E1.global.exception.BusinessException;
 import main_project_025.I6E1.domain.review.entity.Review;
 import main_project_025.I6E1.domain.review.mapper.ReviewMapper;
 import main_project_025.I6E1.domain.review.service.ReviewService;
+import main_project_025.I6E1.global.Page.PageDto;
+import main_project_025.I6E1.global.exception.BusinessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/review")
-@Validated
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ReviewController {
     private final ReviewService reviewService;
     private final ReviewMapper mapper;
