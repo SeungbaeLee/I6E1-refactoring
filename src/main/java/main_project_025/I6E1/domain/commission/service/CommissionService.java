@@ -9,7 +9,6 @@ import main_project_025.I6E1.domain.commission.entity.Commission;
 import main_project_025.I6E1.domain.commission.repository.CommissionRepository;
 import main_project_025.I6E1.domain.commission.repository.CommissionRepositoryImpl;
 import main_project_025.I6E1.domain.member.entity.Member;
-import main_project_025.I6E1.domain.member.repository.MemberRepository;
 import main_project_025.I6E1.domain.member.service.MemberService;
 import main_project_025.I6E1.domain.tag.service.TagService;
 import main_project_025.I6E1.global.auth.userdetails.AuthMember;
@@ -35,7 +34,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CommissionService {
     private final CommissionRepository commissionRepository;
-    private final MemberRepository memberRepository;
     private final MemberService memberService;
     private final TagService tagService;
     private final AwsS3Service awsS3Service;
@@ -111,9 +109,5 @@ public class CommissionService {
             throw new BusinessException(ExceptionCode.NOT_AUTHORITY);
         }
         return commission;
-    }
-
-    private Member getMemberFromId(long memberId){
-        return memberRepository.findById(memberId).get();
     }
 }
