@@ -62,6 +62,7 @@ public class CommissionService {
     }
 
     // READ
+    @Transactional(readOnly = true)
     public CommissionResponseDto readCommission(long commissionId){
         Commission commission = existCommission(commissionId);
 
@@ -70,12 +71,14 @@ public class CommissionService {
     }
 
     // READ ALL
+    @Transactional(readOnly = true)
     public Page<Commission> readCommissions(Pageable pageable){
         Pageable pageRequest = PageRequest.of(pageable.getPageNumber()-1, pageable.getPageSize(), pageable.getSort());
         return commissionRepository.findAll(pageRequest);
     }
 
   //검색 기능
+    @Transactional(readOnly = true)
     public Page<Commission> searchOptions(Pageable pageable, String title, String name, List<String> tags) {
         Pageable pageRequest = PageRequest.of(pageable.getPageNumber()-1, pageable.getPageSize(), pageable.getSort());
         return commissionRepositoryImpl.findBySearchOption(pageRequest, title, name, tags);
@@ -94,12 +97,15 @@ public class CommissionService {
     }
 
     // 게시글 검증
+
+    @Transactional(readOnly = true)
     public Commission existCommission(long commissionId){
         Optional<Commission> commission = commissionRepository.findById(commissionId);
         return commission.orElseThrow(()-> new BusinessException(ExceptionCode.COMMISSION_NOT_FOUND));
     }
 
     // (로그인 멤버 = 작성자) 검증
+    @Transactional(readOnly = true)
     private Commission verifyWriter(long commissionId){
         AuthMember loginMember = (AuthMember) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         long memberId = loginMember.getMemberId();
