@@ -3,14 +3,13 @@ package main_project_025.I6E1.global.config;
 import lombok.RequiredArgsConstructor;
 import main_project_025.I6E1.global.auth.filter.JwtAuthenticationFilter;
 import main_project_025.I6E1.global.auth.filter.JwtVerificationFilter;
-import main_project_025.I6E1.global.auth.handler.MemberAccessDeniedHandler;
-import main_project_025.I6E1.global.auth.handler.MemberAuthenticationEntryPoint;
 import main_project_025.I6E1.global.auth.handler.MemberAuthenticationFailureHandler;
 import main_project_025.I6E1.global.auth.handler.MemberAuthenticationSuccessHandler;
 import main_project_025.I6E1.global.auth.jwt.JwtTokenizer;
 import main_project_025.I6E1.global.auth.utils.CustomAuthorityUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,8 +18,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 
 @Configuration
@@ -33,25 +30,49 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http
-                .headers().frameOptions().sameOrigin()
-                .and()
-                .csrf().disable()
-                .cors(withDefaults())
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .formLogin().disable()
-                .logout().disable()
-                .httpBasic().disable()
-                .exceptionHandling()
-                .authenticationEntryPoint(new MemberAuthenticationEntryPoint())
-                .accessDeniedHandler(new MemberAccessDeniedHandler())
-                .and()
-                .apply(new CustomFilterConfigurer())
-                .and()
-                .logout().disable()
-                .authorizeHttpRequests(authorize -> authorize
-                        .anyRequest().permitAll()
-                );
+                .csrf(cs -> cs.disable())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(f -> f.disable())
+                .httpBasic(h -> h.disable());
+
+        http.authorizeHttpRequests((authorizeHttpRequest) ->
+                authorizeHttpRequest
+                        .requestMatchers("/members").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/commission/**").hasRole("AUTHOR")
+                        .requestMatchers(HttpMethod.PATCH,"/commission/**").hasRole("AUTHOR")
+                        .requestMatchers(HttpMethod.DELETE,"/commission/**").hasRole("AUTHOR")
+
+                        .requestMatchers(HttpMethod.POST,"/review/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.PATCH,"/review/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE,"/review/**").hasRole("USER")
+
+                        .requestMatchers(HttpMethod.POST,"/trade/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.PATCH,"/trade/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE,"/trade/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,"/trade/{tradeId}").authenticated()
+
+        );
+
+//        http
+//                .headers().frameOptions().sameOrigin()
+//                .and()
+//                .csrf().disable()
+//                .cors(withDefaults())
+//                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                .and()
+//                .formLogin().disable()
+//                .logout().disable()
+//                .httpBasic().disable()
+//                .exceptionHandling()
+//                .authenticationEntryPoint(new MemberAuthenticationEntryPoint())
+//                .accessDeniedHandler(new MemberAccessDeniedHandler())
+//                .and()
+//                .apply(new CustomFilterConfigurer())
+//                .and()
+//                .logout().disable()
+//                .authorizeHttpRequests(authorize -> authorize
+//                        .anyRequest().permitAll()
+//                );
         return http.build();
     }
 
