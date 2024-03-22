@@ -52,27 +52,6 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET,"/trade/{tradeId}").authenticated()
 
         );
-
-//        http
-//                .headers().frameOptions().sameOrigin()
-//                .and()
-//                .csrf().disable()
-//                .cors(withDefaults())
-//                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                .and()
-//                .formLogin().disable()
-//                .logout().disable()
-//                .httpBasic().disable()
-//                .exceptionHandling()
-//                .authenticationEntryPoint(new MemberAuthenticationEntryPoint())
-//                .accessDeniedHandler(new MemberAccessDeniedHandler())
-//                .and()
-//                .apply(new CustomFilterConfigurer())
-//                .and()
-//                .logout().disable()
-//                .authorizeHttpRequests(authorize -> authorize
-//                        .anyRequest().permitAll()
-//                );
         return http.build();
     }
 
