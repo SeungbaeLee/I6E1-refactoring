@@ -13,10 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -71,7 +69,7 @@ public class CommissionController {
 
     //UPDATE
     @PatchMapping("/{commission-id}")
-    @PreAuthorize("hasRole('ROLE_AUTHOR')")
+//    @PreAuthorize("hasRole('ROLE_AUTHOR')")
     public ResponseEntity<CommissionResponseDto> patchCommission(@PathVariable("commission-id")long commissionId,
                                                                  @Valid @RequestBody CommissionPatchDto patchDto){
             CommissionResponseDto commission = commissionService.updateCommission(commissionId, patchDto);
@@ -82,7 +80,7 @@ public class CommissionController {
     //Delete
     //Soft Delete
     @DeleteMapping("/{commission-id}")
-    @PreAuthorize("hasRole('ROLE_AUTHOR')")
+//    @PreAuthorize("hasRole('ROLE_AUTHOR')")
     public ResponseEntity<String> deleteCommission(@PathVariable("commission-id")long commissionId){
             commissionService.deleteCommission(commissionId);
             return new ResponseEntity<>("정상적으로 삭제되었습니다. " , HttpStatus.NO_CONTENT);
